@@ -267,6 +267,31 @@
     --best: #1a2e42;
     --warn: #f47067;
   }
+  [data-theme="dark"] .program-btn,
+  [data-theme="dark"] .tuition-btn {
+    background: #21262d;
+    border-color: #444c56;
+    color: #c9d1d9;
+  }
+  [data-theme="dark"] .program-btn:hover,
+  [data-theme="dark"] .tuition-btn:hover {
+    border-color: #5ba3d9;
+    background: #262c36;
+  }
+  [data-theme="dark"] .program-btn.active,
+  [data-theme="dark"] .tuition-btn.active {
+    background: #1a3a54;
+    border-color: #58a6e8;
+    box-shadow: 0 0 0 3px rgba(88,166,232,.3);
+  }
+  [data-theme="dark"] .program-btn .label,
+  [data-theme="dark"] .tuition-btn .label { color: #e6edf3; }
+  [data-theme="dark"] .program-btn .desc { color: #8b949e; }
+  [data-theme="dark"] .tuition-btn .amount { color: #79c0ff; }
+  [data-theme="dark"] .apy-input {
+    background: #1c2128; color: #d1d5db; border-color: #3d444d;
+  }
+  [data-theme="dark"] .apy-input:focus { border-color: #5ba3d9; }
   [data-theme="dark"] .tag-extra {
     background: #3d1f1c;
     color: #f47067;

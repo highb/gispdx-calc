@@ -322,3 +322,268 @@
     table { font-size: .8rem; }
     th, td { padding: .35rem .3rem; }
   }
+
+  /* ── Feature 1: Chart ─────────────────────────────────────── */
+  .chart-card { padding: 1.25rem; }
+  .chart-container {
+    position: relative;
+    width: 100%;
+    height: 380px;
+  }
+  .chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* ── Feature 2: Tax-adjusted APY ──────────────────────────── */
+  .tax-row {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    margin-top: .6rem; padding-top: .6rem;
+    border-top: 1px dashed var(--border);
+    font-size: .88rem;
+  }
+  .tax-check-label {
+    display: inline-flex; align-items: center; gap: .3rem;
+    font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .tax-checkbox {
+    accent-color: var(--blue); width: 1rem; height: 1rem; cursor: pointer;
+  }
+  .tax-rate-group {
+    display: inline-flex; align-items: center; gap: .35rem;
+    white-space: nowrap;
+  }
+  .tax-rate-group label { font-weight: 600; font-size: .85rem; }
+  .tax-rate-input {
+    width: 60px; padding: .3rem .4rem; border: 2px solid var(--border);
+    border-radius: 4px; font-size: .9rem; text-align: right;
+    transition: border-color .15s;
+  }
+  .tax-rate-input:focus { outline: none; border-color: var(--blue); }
+  .tax-effective {
+    color: var(--blue-dark); font-weight: 700; font-size: .88rem;
+    white-space: nowrap;
+  }
+  [data-theme="dark"] .tax-rate-input {
+    background: #1c2128; color: #d1d5db; border-color: #3d444d;
+  }
+  [data-theme="dark"] .tax-rate-input:focus { border-color: #5ba3d9; }
+
+  /* ── Feature 3: Custom tuition override ───────────────────── */
+  .tuition-override-card {
+    padding: .85rem 1.25rem;
+  }
+  .tuition-override-row {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  }
+  .tuition-override-label {
+    font-weight: 700; font-size: .95rem; white-space: nowrap;
+  }
+  .tuition-override-dollar {
+    font-weight: 700; font-size: 1.05rem; color: var(--muted);
+  }
+  .tuition-override-input {
+    width: 140px; padding: .4rem .6rem; border: 2px solid var(--border);
+    border-radius: 5px; font-size: 1rem; text-align: right;
+    transition: border-color .15s, background .15s;
+  }
+  .tuition-override-input:focus { outline: none; border-color: var(--blue); }
+  .tuition-override-input.overridden {
+    border-color: #e9c46a; background: #fffbf0;
+  }
+  .tuition-reset-btn {
+    background: none; border: 1px solid var(--border); border-radius: 4px;
+    padding: .25rem .6rem; font-size: .8rem; color: var(--muted);
+    cursor: pointer; transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .tuition-reset-btn:hover { color: var(--blue); border-color: var(--blue); }
+  .tuition-override-note {
+    margin-top: .4rem; font-size: .8rem; color: #b58900;
+    font-style: italic;
+  }
+  [data-theme="dark"] .tuition-override-input {
+    background: #1c2128; color: #d1d5db; border-color: #3d444d;
+  }
+  [data-theme="dark"] .tuition-override-input:focus { border-color: #5ba3d9; }
+  [data-theme="dark"] .tuition-override-input.overridden {
+    border-color: #b58900; background: #2a2518;
+  }
+  [data-theme="dark"] .tuition-override-note { color: #e9c46a; }
+
+  /* ── Feature 4: Print stylesheet ─────────────────────────── */
+  .print-url { display: none; }
+
+  @media print {
+    /* Force light theme */
+    :root {
+      --blue: #1470AF !important;
+      --blue-dark: #0e5a8c !important;
+      --blue-light: #e8f1f8 !important;
+      --blue-mid: #d0e3f0 !important;
+      --gray-light: #EAEAEE !important;
+      --bg: #ffffff !important;
+      --card: #ffffff !important;
+      --border: #ddd !important;
+      --text: #000000 !important;
+      --muted: #4a5464 !important;
+      --best: #c8dff0 !important;
+      --warn: #f0523d !important;
+    }
+    [data-theme="dark"] {
+      --blue: #1470AF !important;
+      --blue-dark: #0e5a8c !important;
+      --blue-light: #e8f1f8 !important;
+      --blue-mid: #d0e3f0 !important;
+      --gray-light: #EAEAEE !important;
+      --bg: #ffffff !important;
+      --card: #ffffff !important;
+      --border: #ddd !important;
+      --text: #000000 !important;
+      --muted: #4a5464 !important;
+      --best: #c8dff0 !important;
+      --warn: #f0523d !important;
+    }
+
+    body { padding: 0; max-width: 100%; }
+
+    /* Hide interactive/unnecessary elements */
+    .theme-toggle,
+    .apy-slider,
+    .add-child-btn,
+    .child-remove,
+    .math-mode-card,
+    .tuition-reset-btn,
+    .tax-checkbox { display: none !important; }
+
+    /* Keep APY number visible */
+    .apy-row label,
+    .apy-row .apy-input,
+    .apy-row span { display: inline !important; }
+
+    /* Prevent tables from breaking across pages */
+    table, tr, .card {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Chart sizing for print */
+    .chart-container { height: 300px; }
+
+    /* Remove shadows/borders for cleaner print */
+    .card { box-shadow: none; border: 1px solid #ccc; }
+
+    /* Show print URL footer */
+    .print-url {
+      display: block;
+      text-align: center;
+      padding: 1rem 0 0;
+      margin-top: 1rem;
+      border-top: 1px solid #ccc;
+      font-size: .72rem;
+      color: #666;
+    }
+  }
+
+  /* Chart */
+  .chart-card { padding: 1.25rem; }
+  .chart-container { position: relative; height: 380px; width: 100%; }
+  .chart-container canvas { width: 100% !important; height: 100% !important; }
+
+  /* Tax-adjusted APY */
+  .tax-row {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    margin-top: .6rem; font-size: .88rem;
+  }
+  .tax-check-label {
+    display: inline-flex; align-items: center; gap: .35rem;
+    font-weight: 600; cursor: pointer;
+  }
+  .tax-checkbox { accent-color: var(--blue); cursor: pointer; }
+  .tax-rate-group {
+    display: inline-flex; align-items: center; gap: .35rem;
+  }
+  .tax-rate-input {
+    width: 60px; padding: .3rem .4rem; border: 2px solid var(--border);
+    border-radius: 4px; font-size: .88rem; text-align: right;
+    transition: border-color .15s;
+  }
+  .tax-rate-input:focus { outline: none; border-color: var(--blue); }
+  .tax-effective {
+    color: var(--blue-dark); font-weight: 700; font-size: .85rem;
+  }
+  [data-theme="dark"] .tax-rate-input {
+    background: #1c2128; color: #d1d5db; border-color: #3d444d;
+  }
+  [data-theme="dark"] .tax-rate-input:focus { border-color: #5ba3d9; }
+  [data-theme="dark"] .tax-effective { color: #8ec5f0; }
+
+  /* Custom tuition override */
+  .tuition-override-card { padding: .85rem 1.25rem; }
+  .tuition-override-row {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  }
+  .tuition-override-label { font-weight: 700; font-size: .95rem; }
+  .tuition-override-dollar { font-weight: 700; font-size: 1.05rem; color: var(--blue); }
+  .tuition-override-input {
+    width: 140px; padding: .4rem .6rem; border: 2px solid var(--border);
+    border-radius: 5px; font-size: 1rem; text-align: right;
+    transition: border-color .15s, background .15s;
+  }
+  .tuition-override-input:focus { outline: none; border-color: var(--blue); }
+  .tuition-override-input.overridden {
+    border-color: #f39c12; background: #fef9e7;
+  }
+  .tuition-reset-btn {
+    background: none; border: 1px solid var(--border); border-radius: 4px;
+    padding: .3rem .7rem; font-size: .82rem; cursor: pointer;
+    color: var(--muted); transition: border-color .15s, color .15s;
+  }
+  .tuition-reset-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .tuition-override-note {
+    margin-top: .4rem; font-size: .8rem; color: #e67e22; font-weight: 600;
+  }
+  [data-theme="dark"] .tuition-override-input {
+    background: #1c2128; color: #d1d5db; border-color: #3d444d;
+  }
+  [data-theme="dark"] .tuition-override-input:focus { border-color: #5ba3d9; }
+  [data-theme="dark"] .tuition-override-input.overridden {
+    border-color: #f5b041; background: #3a2e10;
+  }
+  [data-theme="dark"] .tuition-override-note { color: #f5b041; }
+
+  /* Print-only URL */
+  .print-url { display: none; }
+
+  /* Print stylesheet */
+  @media print {
+    :root,
+    [data-theme="dark"] {
+      --blue: #1470AF;
+      --blue-dark: #0e5a8c;
+      --blue-light: #e8f1f8;
+      --blue-mid: #d0e3f0;
+      --gray-light: #EAEAEE;
+      --bg: #ffffff;
+      --card: #ffffff;
+      --border: #ddd;
+      --text: #000000;
+      --muted: #4a5464;
+      --best: #c8dff0;
+    }
+    body { padding: 0; max-width: 100%; }
+    .theme-toggle,
+    .apy-slider,
+    .add-child-btn,
+    .child-remove,
+    .math-mode-card,
+    .tuition-reset-btn,
+    .tax-checkbox { display: none !important; }
+    .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+    table { break-inside: avoid; }
+    .chart-container { height: 300px; }
+    .print-url {
+      display: block; text-align: center; margin-top: 1rem;
+      font-size: .75rem; color: #666;
+    }
+  }

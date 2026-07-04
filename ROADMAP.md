@@ -9,13 +9,13 @@
 
 ## Medium Value
 
-- [ ] **Chart / visualization** — Line chart showing effective cost vs. APY for all 5 plans with crossover points visible
-- [ ] **Tax-adjusted APY** — Checkbox for "after-tax APY" with a marginal rate input (interest income is taxable)
-- [ ] **Print / export** — Print stylesheet or "save as PDF" so parents can bring the analysis to a discussion
+- [x] **Chart / visualization** — Line chart showing effective cost vs. APY for all 5 plans with crossover points visible
+- [x] **Tax-adjusted APY** — Checkbox for "after-tax APY" with a marginal rate input (interest income is taxable)
+- [x] **Print / export** — Print stylesheet; hides interactive controls, forces light theme, shows URL footer
 
 ## Lower Value / Polish
 
-- [ ] **PWA / offline** — Service worker + manifest for offline use (already a static WASM app)
+- ~~**PWA / offline**~~ — Won't do. Already a static WASM app that loads in <1s; service worker adds complexity for zero real-world value.
 - [ ] **Accessibility audit** — ARIA labels on tables, slider, and program/tuition buttons for screen readers
-- [ ] **Year selector** — Dropdown for future school years (with caveat that tuition may change)
-- [ ] **Custom tuition input** — Let users override the amount for "what if tuition goes up 5%?" scenarios
+- ~~**Year selector**~~ — Won't do. Without actual future-year tuition data this is meaningless; custom tuition input covers the "what if" scenario better.
+- [x] **Custom tuition input** — Let users override the amount for "what if tuition goes up 5%?" scenarios

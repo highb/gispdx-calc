@@ -4,9 +4,19 @@ use wasm_bindgen::JsCast;
 use crate::data::{self, PROGRAMS, PaymentPlan};
 use crate::math;
 use crate::components::math_mode::MathMode;
+use crate::components::chart::CostChart;
 
-/// Parse the URL hash (e.g. `#p=0&t=2&apy=5.0`) into (program, tuition, apy).
-fn parse_hash() -> (Option<usize>, Option<usize>, Option<f64>) {
+/// Parsed URL hash state
+struct HashState {
+    program: Option<usize>,
+    tuition: Option<usize>,
+    apy: Option<f64>,
+    tax_enabled: bool,
+    tax_rate: Option<f64>,
+}
+
+/// Parse the URL hash (e.g. `#p=0&t=2&apy=5.0&tax=1&rate=24`).
+fn parse_hash() -> HashState {
     let hash = web_sys::window()
         .and_then(|w| w.location().hash().ok())
         .unwrap_or_default();
@@ -14,21 +24,25 @@ fn parse_hash() -> (Option<usize>, Option<usize>, Option<f64>) {
     let mut p = None;
     let mut t = None;
     let mut apy = None;
+    let mut tax = false;
+    let mut rate = None;
     for part in hash.split('&') {
         if let Some((key, val)) = part.split_once('=') {
             match key {
                 "p" => p = val.parse::<usize>().ok(),
                 "t" => t = val.parse::<usize>().ok(),
                 "apy" => apy = val.parse::<f64>().ok(),
+                "tax" => tax = val == "1",
+                "rate" => rate = val.parse::<f64>().ok(),
                 _ => {}
             }
         }
     }
-    (p, t, apy)
+    HashState { program: p, tuition: t, apy, tax_enabled: tax, tax_rate: rate }
 }
 
 /// Write current state to the URL hash via `replaceState` (no history entry).
-fn write_hash(program: Option<usize>, tuition: Option<usize>, apy: f64) {
+fn write_hash(program: Option<usize>, tuition: Option<usize>, apy: f64, tax_on: bool, tax_rate: f64) {
     let Some(window) = web_sys::window() else { return };
     let mut parts = Vec::new();
     if let Some(p) = program {
@@ -38,6 +52,10 @@ fn write_hash(program: Option<usize>, tuition: Option<usize>, apy: f64) {
         parts.push(format!("t={}", t));
     }
     parts.push(format!("apy={}", apy));
+    if tax_on {
+        parts.push("tax=1".into());
+        parts.push(format!("rate={}", tax_rate));
+    }
     let hash = format!("#{}", parts.join("&"));
     let _ = window.history().and_then(|h| {
         h.replace_state_with_url(
@@ -77,6 +95,23 @@ pub fn App() -> impl IntoView {
     let (children, set_children) = signal::<Vec<(usize, usize)>>(Vec::new());
     let (apy_value, set_apy_value) = signal(5.0_f64);
 
+    // Feature 2: Tax-adjusted APY
+    let (tax_enabled, set_tax_enabled) = signal(false);
+    let (tax_rate, set_tax_rate) = signal(24.0_f64); // marginal rate %
+
+    // Derived: the APY actually used in all calculations
+    let effective_apy = move || {
+        let raw = apy_value.get();
+        if tax_enabled.get() {
+            raw * (1.0 - tax_rate.get() / 100.0)
+        } else {
+            raw
+        }
+    };
+
+    // Feature 3: Custom tuition override
+    let (tuition_override, set_tuition_override) = signal::<Option<f64>>(None);
+
     // Derived: current program
     let current_program = move || selected_program.get().map(|i| &PROGRAMS[i]);
 
@@ -97,19 +132,27 @@ pub fn App() -> impl IntoView {
         set_children.update(|v| { v.remove(idx); });
     };
 
-    // Derived: total tuition across all children, or single-selection fallback
-    let total_tuition = move || -> Option<f64> {
+    // Derived: base tuition (from children list or single selection, before override)
+    let base_tuition = move || -> Option<f64> {
         let kids = children.get();
         if !kids.is_empty() {
             Some(kids.iter().map(|&(pi, ti)| {
                 PROGRAMS[pi].options[ti].amount
             }).sum())
         } else {
-            // Fallback: single-selection mode
             let prog = current_program()?;
             let ti = selected_tuition.get()?;
             let opt = prog.options.get(ti)?;
             Some(opt.amount)
+        }
+    };
+
+    // Derived: total tuition (with optional custom override)
+    let total_tuition = move || -> Option<f64> {
+        if let Some(ov) = tuition_override.get() {
+            Some(ov)
+        } else {
+            base_tuition()
         }
     };
 
@@ -121,6 +164,7 @@ pub fn App() -> impl IntoView {
     // Handler for program select
     let on_program_select = move |idx: usize| {
         set_selected_program.set(Some(idx));
+        set_tuition_override.set(None); // reset custom override
         let prog = &PROGRAMS[idx];
         if prog.options.len() == 1 {
             set_selected_tuition.set(Some(0));
@@ -131,17 +175,23 @@ pub fn App() -> impl IntoView {
 
     // On mount: restore state from URL hash, falling back to defaults
     Effect::new(move || {
-        let (p, t, apy) = parse_hash();
+        let hs = parse_hash();
 
-        let prog_idx = p.filter(|&i| i < PROGRAMS.len()).unwrap_or(0);
+        let prog_idx = hs.program.filter(|&i| i < PROGRAMS.len()).unwrap_or(0);
         set_selected_program.set(Some(prog_idx));
 
         let max_t = PROGRAMS[prog_idx].options.len();
-        let tui_idx = t.filter(|&i| i < max_t).unwrap_or(2.min(max_t.saturating_sub(1)));
+        let tui_idx = hs.tuition.filter(|&i| i < max_t).unwrap_or(2.min(max_t.saturating_sub(1)));
         set_selected_tuition.set(Some(tui_idx));
 
-        if let Some(a) = apy {
+        if let Some(a) = hs.apy {
             set_apy_value.set(a);
+        }
+
+        // Restore tax state
+        set_tax_enabled.set(hs.tax_enabled);
+        if let Some(r) = hs.tax_rate {
+            set_tax_rate.set(r);
         }
     });
 
@@ -150,7 +200,9 @@ pub fn App() -> impl IntoView {
         let p = selected_program.get();
         let t = selected_tuition.get();
         let a = apy_value.get();
-        write_hash(p, t, a);
+        let tax_on = tax_enabled.get();
+        let rate = tax_rate.get();
+        write_hash(p, t, a, tax_on, rate);
     });
 
     // Dark mode
@@ -253,7 +305,10 @@ pub fn App() -> impl IntoView {
                                     <button
                                         class:tuition-btn=true
                                         class:active=active
-                                        on:click=move |_| set_selected_tuition.set(Some(i))
+                                        on:click=move |_| {
+                                            set_selected_tuition.set(Some(i));
+                                            set_tuition_override.set(None);
+                                        }
                                     >
                                         <div class="label">{opt.label}</div>
                                         <div class="amount">{usd(opt.amount)}</div>
@@ -261,6 +316,60 @@ pub fn App() -> impl IntoView {
                                 }
                             }).collect::<Vec<_>>()}
                         </div>
+                    </div>
+                }
+            }}
+        </Show>
+
+        // Feature 3: Custom tuition override
+        <Show when=move || base_tuition().is_some()>
+            {move || {
+                let _display_val = total_tuition().unwrap_or(0.0);
+                let is_overridden = tuition_override.get().is_some();
+                view! {
+                    <div class="card tuition-override-card">
+                        <div class="tuition-override-row">
+                            <label for="tuitionOverride" class="tuition-override-label">
+                                "Total Tuition:"
+                            </label>
+                            <span class="tuition-override-dollar">"$"</span>
+                            <input
+                                type="number"
+                                id="tuitionOverride"
+                                class="tuition-override-input"
+                                class:overridden=is_overridden
+                                prop:value=move || format!("{:.2}", total_tuition().unwrap_or(0.0))
+                                min="0" step="100"
+                                on:input=move |ev| {
+                                    if let Ok(v) = event_target_value(&ev).parse::<f64>() {
+                                        if v > 0.0 {
+                                            // Check if it matches the base; if so, clear override
+                                            if let Some(base) = base_tuition() {
+                                                if (v - base).abs() < 0.01 {
+                                                    set_tuition_override.set(None);
+                                                    return;
+                                                }
+                                            }
+                                            set_tuition_override.set(Some(v));
+                                        }
+                                    }
+                                }
+                            />
+                            <Show when=move || tuition_override.get().is_some()>
+                                <button
+                                    class="tuition-reset-btn"
+                                    title="Reset to program tuition"
+                                    on:click=move |_| set_tuition_override.set(None)
+                                >
+                                    "\u{21BA} Reset"
+                                </button>
+                            </Show>
+                        </div>
+                        <Show when=move || tuition_override.get().is_some()>
+                            <div class="tuition-override-note">
+                                {move || format!("Custom override (program default: {})", usd(base_tuition().unwrap_or(0.0)))}
+                            </div>
+                        </Show>
                     </div>
                 }
             }}
@@ -312,7 +421,17 @@ pub fn App() -> impl IntoView {
                 let plans = current_plans().unwrap();
                 view! {
                     <SummaryTable plans=plans.clone() />
-                    <ApySection plans=plans.clone() apy_value=apy_value set_apy_value=set_apy_value />
+                    <ApySection
+                        plans=plans.clone()
+                        apy_value=apy_value
+                        set_apy_value=set_apy_value
+                        effective_apy=Signal::derive(effective_apy)
+                        tax_enabled=tax_enabled
+                        set_tax_enabled=set_tax_enabled
+                        tax_rate=tax_rate
+                        set_tax_rate=set_tax_rate
+                    />
+                    <CostChart plans=plans.clone() apy_value=Signal::derive(effective_apy) dark=dark />
                     <BreakevenTable plans=plans.clone() />
                     <PairwiseGrid plans=plans />
                 }
@@ -326,6 +445,19 @@ pub fn App() -> impl IntoView {
             <br />
             "This is a mathematical tool, not financial advice. Not affiliated with or endorsed by German International School Portland."
         </footer>
+
+        // Feature 4: Print-only URL footer (visible only when printing)
+        <div class="print-url">
+            {move || {
+                let url = web_sys::window()
+                    .and_then(|w| w.location().href().ok())
+                    .unwrap_or_default();
+                view! {
+                    "Generated by GIS Payment Calculator \u{2014} "
+                    <span>{url}</span>
+                }
+            }}
+        </div>
     }
 }
 
@@ -376,10 +508,15 @@ fn ApySection(
     plans: Vec<PaymentPlan>,
     apy_value: ReadSignal<f64>,
     set_apy_value: WriteSignal<f64>,
+    effective_apy: Signal<f64>,
+    tax_enabled: ReadSignal<bool>,
+    set_tax_enabled: WriteSignal<bool>,
+    tax_rate: ReadSignal<f64>,
+    set_tax_rate: WriteSignal<f64>,
 ) -> impl IntoView {
     let plans_clone = plans.clone();
     let ranked = Memo::new(move |_| {
-        let apy = apy_value.get() / 100.0;
+        let apy = effective_apy.get() / 100.0;
         let mut items: Vec<(String, f64, Vec<(f64, f64)>)> = plans_clone
             .iter()
             .map(|p| {
@@ -422,6 +559,42 @@ fn ApySection(
                     }
                 />
             </div>
+            // Feature 2: Tax-adjusted APY
+            <div class="tax-row">
+                <label class="tax-check-label">
+                    <input
+                        type="checkbox"
+                        class="tax-checkbox"
+                        prop:checked=move || tax_enabled.get()
+                        on:change=move |ev| {
+                            let checked = event_target_checked(&ev);
+                            set_tax_enabled.set(checked);
+                        }
+                    />
+                    " After-tax APY"
+                </label>
+                <Show when=move || tax_enabled.get()>
+                    <span class="tax-rate-group">
+                        <label for="taxRate">"Marginal rate:"</label>
+                        <input
+                            type="number"
+                            id="taxRate"
+                            class="tax-rate-input"
+                            prop:value=move || format!("{:.0}", tax_rate.get())
+                            min="0" max="60" step="1"
+                            on:input=move |ev| {
+                                if let Ok(v) = event_target_value(&ev).parse::<f64>() {
+                                    set_tax_rate.set(v);
+                                }
+                            }
+                        />
+                        <span>"%"</span>
+                    </span>
+                    <span class="tax-effective">
+                        {move || format!("\u{2192} Effective APY: {:.2}%", effective_apy.get())}
+                    </span>
+                </Show>
+            </div>
             <div class="table-wrap">
                 <table style="margin-top:.75rem">
                     <thead>
@@ -463,13 +636,13 @@ fn ApySection(
                 let best_name = &items[0].0;
                 let best_payments = &items[0].2;
                 let avg_m = math::weighted_avg_month(best_payments);
-                let apy = apy_value.get();
+                let eff = effective_apy.get();
                 let msg = if avg_m == 0.0 {
-                    format!("{} \u{2014} The 2% early-payment discount saves the most at {:.1}% APY.", best_name, apy)
+                    format!("{} \u{2014} The 2% early-payment discount saves the most at {:.1}% APY.", best_name, eff)
                 } else if avg_m == 2.0 && best_payments.len() == 1 {
                     format!("{} \u{2014} Paying in full in July (no fee) is optimal. Invest until then.", best_name)
                 } else {
-                    format!("{} \u{2014} Spreading payments (avg month {:.1}) keeps money invested long enough to outweigh finance fees at {:.1}% APY.", best_name, avg_m, apy)
+                    format!("{} \u{2014} Spreading payments (avg month {:.1}) keeps money invested long enough to outweigh finance fees at {:.1}% APY.", best_name, avg_m, eff)
                 };
                 view! {
                     <div class="reco">

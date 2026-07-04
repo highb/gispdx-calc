@@ -74,17 +74,48 @@ fn pct(v: f64) -> String {
 pub fn App() -> impl IntoView {
     let (selected_program, set_selected_program) = signal::<Option<usize>>(None);
     let (selected_tuition, set_selected_tuition) = signal::<Option<usize>>(None);
+    let (children, set_children) = signal::<Vec<(usize, usize)>>(Vec::new());
     let (apy_value, set_apy_value) = signal(5.0_f64);
 
     // Derived: current program
     let current_program = move || selected_program.get().map(|i| &PROGRAMS[i]);
 
-    // Derived: current plans
+    // Whether selector has a valid program+tuition pair picked
+    let can_add_child = move || {
+        selected_program.get().is_some() && selected_tuition.get().is_some()
+    };
+
+    // Add current selection as a child
+    let add_child = move |_| {
+        if let (Some(pi), Some(ti)) = (selected_program.get(), selected_tuition.get()) {
+            set_children.update(|v| v.push((pi, ti)));
+        }
+    };
+
+    // Remove child at index
+    let remove_child = move |idx: usize| {
+        set_children.update(|v| { v.remove(idx); });
+    };
+
+    // Derived: total tuition across all children, or single-selection fallback
+    let total_tuition = move || -> Option<f64> {
+        let kids = children.get();
+        if !kids.is_empty() {
+            Some(kids.iter().map(|&(pi, ti)| {
+                PROGRAMS[pi].options[ti].amount
+            }).sum())
+        } else {
+            // Fallback: single-selection mode
+            let prog = current_program()?;
+            let ti = selected_tuition.get()?;
+            let opt = prog.options.get(ti)?;
+            Some(opt.amount)
+        }
+    };
+
+    // Derived: current plans from total tuition
     let current_plans = move || -> Option<Vec<PaymentPlan>> {
-        let prog = current_program()?;
-        let ti = selected_tuition.get()?;
-        let opt = prog.options.get(ti)?;
-        Some(data::build_plans(opt.amount))
+        total_tuition().map(data::build_plans)
     };
 
     // Handler for program select
@@ -229,6 +260,46 @@ pub fn App() -> impl IntoView {
                                     </button>
                                 }
                             }).collect::<Vec<_>>()}
+                        </div>
+                    </div>
+                }
+            }}
+        </Show>
+
+        // Add Child button
+        <Show when=move || can_add_child()>
+            <div style="text-align:center;margin-bottom:1rem">
+                <button class="add-child-btn" on:click=add_child>
+                    "\u{2795} Add Child"
+                </button>
+            </div>
+        </Show>
+
+        // Children list
+        <Show when=move || !children.get().is_empty()>
+            {move || {
+                let kids = children.get();
+                let total: f64 = kids.iter().map(|&(pi, ti)| PROGRAMS[pi].options[ti].amount).sum();
+                view! {
+                    <div class="card children-card">
+                        <h2>"\u{1F9D2} Children"</h2>
+                        <div class="children-list">
+                            {kids.iter().enumerate().map(|(idx, &(pi, ti))| {
+                                let prog = &PROGRAMS[pi];
+                                let opt = &prog.options[ti];
+                                let label = format!("Child {}: {} \u{2014} {} ({})", idx + 1, prog.label, opt.label, usd(opt.amount));
+                                view! {
+                                    <div class="child-chip">
+                                        <span class="child-label">{label}</span>
+                                        <button class="child-remove" on:click=move |_| remove_child(idx)>
+                                            "\u{00D7}"
+                                        </button>
+                                    </div>
+                                }
+                            }).collect::<Vec<_>>()}
+                        </div>
+                        <div class="children-total">
+                            {format!("Combined tuition: {}", usd(total))}
                         </div>
                     </div>
                 }

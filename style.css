@@ -208,6 +208,42 @@
     font-size: .84rem; padding: .4rem .5rem;
   }
 
+  /* Add Child button */
+  .add-child-btn {
+    background: var(--blue); color: #fff; border: none; border-radius: 6px;
+    padding: .6rem 1.5rem; font-size: .95rem; font-weight: 700;
+    cursor: pointer; transition: background .15s, box-shadow .15s;
+  }
+  .add-child-btn:hover { background: var(--blue-dark); box-shadow: 0 2px 8px rgba(20,112,175,.3); }
+
+  /* Children list */
+  .children-card { background: var(--blue-light); border-color: var(--blue-mid); }
+  .children-list {
+    display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem;
+  }
+  .child-chip {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: var(--card); border: 1px solid var(--blue-mid);
+    border-radius: 20px; padding: .35rem .5rem .35rem .85rem;
+    font-size: .88rem; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    transition: border-color .15s;
+  }
+  .child-chip:hover { border-color: var(--blue); }
+  .child-label { font-weight: 600; color: var(--text); white-space: nowrap; }
+  .child-remove {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    border: none; background: var(--gray-light); color: var(--muted);
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: background .15s, color .15s;
+    line-height: 1; padding: 0;
+  }
+  .child-remove:hover { background: var(--warn); color: #fff; }
+  .children-total {
+    font-weight: 700; font-size: 1rem; color: var(--blue-dark);
+    padding-top: .5rem; border-top: 1px solid var(--blue-mid);
+  }
+
   footer {
     text-align: center; padding: 1.5rem 0 .5rem;
     color: var(--muted); font-size: .78rem;

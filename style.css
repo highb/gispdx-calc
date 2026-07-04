@@ -1,0 +1,222 @@
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+  :root {
+    --blue: #1470AF;
+    --blue-dark: #0e5a8c;
+    --blue-light: #e8f1f8;
+    --blue-mid: #d0e3f0;
+    --gray-light: #EAEAEE;
+    --gray-med: #999;
+    --bg: #ffffff;
+    --card: #ffffff;
+    --border: #ddd;
+    --text: #000000;
+    --muted: #4a5464;
+    --accent: var(--blue);
+    --highlight: var(--blue-light);
+    --best: #c8dff0;
+    --warn: #f0523d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'proxima-nova', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    padding: 1rem; max-width: 960px; margin: 0 auto;
+  }
+
+  /* Header */
+  header {
+    text-align: center; padding: 1.75rem 1rem 1.25rem;
+    border-bottom: 3px solid var(--blue);
+    margin-bottom: 1.5rem;
+  }
+  header h1 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.5rem; color: var(--blue-dark); margin: 0;
+  }
+  header p { color: var(--muted); margin-top: .25rem; font-size: .88rem; }
+
+  /* Timeline bar */
+  .timeline {
+    background: var(--blue); border-radius: 6px; padding: .7rem 1.2rem;
+    font-size: .8rem; color: #fff; margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; gap: .15rem .8rem; justify-content: center;
+  }
+  .timeline span { white-space: nowrap; }
+  .timeline span::before { content: '\2022'; margin-right: .4rem; opacity: .45; }
+
+  /* Program selector */
+  .program-select {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: .5rem;
+  }
+  .program-btn {
+    background: var(--card); border: 2px solid var(--border); border-radius: 6px;
+    padding: .65rem .85rem; cursor: pointer; text-align: left;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .program-btn:hover { border-color: var(--blue); }
+  .program-btn.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); background: var(--blue-light); }
+  .program-btn .label { font-weight: 700; font-size: .93rem; }
+  .program-btn .desc { color: var(--muted); font-size: .76rem; margin-top: .1rem; }
+
+  /* Tuition selector */
+  .tuition-select {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: .6rem;
+  }
+  .tuition-btn {
+    background: var(--card); border: 2px solid var(--border); border-radius: 6px;
+    padding: .75rem 1rem; cursor: pointer; text-align: left;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .tuition-btn:hover { border-color: var(--blue); }
+  .tuition-btn.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); background: var(--blue-light); }
+  .tuition-btn .label { font-weight: 600; font-size: .95rem; }
+  .tuition-btn .amount { color: var(--blue); font-size: 1.1rem; font-weight: 700; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 1.25rem; margin-bottom: 1.2rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .card h2 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.05rem; color: var(--blue-dark); margin-bottom: .75rem;
+    display: flex; align-items: center; gap: .4rem;
+  }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; min-width: 500px; }
+  th {
+    text-align: left; font-weight: 700; color: var(--muted); padding: .5rem .5rem;
+    border-bottom: 2px solid var(--blue); font-size: .76rem; text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  td { padding: .5rem .5rem; border-bottom: 1px solid var(--gray-light); }
+  tr.best-row td { background: var(--best); font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag {
+    display: inline-block; font-size: .72rem; padding: .12rem .5rem;
+    border-radius: 3px; font-weight: 700;
+  }
+  .tag-best { background: var(--blue); color: #fff; }
+  .tag-extra { background: #fde8e4; color: var(--warn); }
+
+  /* APY input */
+  .apy-row {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+  }
+  .apy-row label { font-weight: 700; }
+  .apy-input {
+    width: 110px; padding: .45rem .6rem; border: 2px solid var(--border);
+    border-radius: 5px; font-size: 1rem; text-align: right;
+    transition: border-color .15s;
+  }
+  .apy-input:focus { outline: none; border-color: var(--blue); }
+  .apy-slider { flex: 1; min-width: 140px; accent-color: var(--blue); }
+
+  /* Recommendation */
+  .reco {
+    background: var(--blue-light); border-left: 4px solid var(--blue);
+    padding: .75rem 1rem; border-radius: 0 6px 6px 0;
+    margin-top: .75rem; font-size: .9rem;
+  }
+  .reco strong { color: var(--blue-dark); }
+
+  /* Pairwise */
+  .pair-grid {
+    display: grid; grid-template-columns: 1fr; gap: .5rem;
+  }
+  .pair-item {
+    background: var(--gray-light); border-radius: 5px; padding: .6rem .8rem;
+    font-size: .85rem;
+  }
+  .pair-item .plans { font-weight: 600; margin-bottom: .2rem; }
+  .pair-item .result { color: var(--blue-dark); }
+
+  /* Math Mode */
+  .math-mode-card { padding: 0; overflow: hidden; }
+  .math-toggle {
+    display: flex; align-items: center; gap: .6rem;
+    width: 100%; padding: 1rem 1.25rem; border: none; background: var(--card);
+    cursor: pointer; font-family: 'Lora', Georgia, serif;
+    font-size: 1.05rem; color: var(--blue-dark); font-weight: 700;
+    transition: background .15s;
+  }
+  .math-toggle:hover { background: var(--blue-light); }
+  .math-toggle-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2rem; height: 2rem; border-radius: 50%;
+    background: var(--blue); color: #fff; font-size: .85rem;
+    font-style: italic; font-family: 'Lora', Georgia, serif;
+  }
+  .math-toggle-arrow {
+    margin-left: auto; font-size: .7rem; color: var(--muted);
+    transition: transform .25s;
+  }
+  .math-toggle-arrow.open { transform: rotate(90deg); }
+  .math-body {
+    padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--border);
+  }
+  .math-section {
+    margin-top: 1.25rem;
+  }
+  .math-section h3 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: .95rem; color: var(--blue-dark); margin-bottom: .5rem;
+    padding-bottom: .3rem; border-bottom: 1px solid var(--blue-mid);
+  }
+  .math-section p, .math-section li {
+    font-size: .88rem; line-height: 1.65; color: var(--text); margin-bottom: .4rem;
+  }
+  .math-block {
+    background: var(--gray-light); border-radius: 5px; padding: .75rem 1rem;
+    margin: .6rem 0; overflow-x: auto; text-align: center;
+    font-size: 1.05rem;
+  }
+  .math-example {
+    background: var(--blue-light); border-left: 3px solid var(--blue);
+    border-radius: 0 5px 5px 0; padding: .75rem 1rem; margin: .75rem 0;
+    font-size: .86rem;
+  }
+  .math-example .math-block {
+    background: rgba(255,255,255,.6);
+  }
+  .math-example p { margin-top: .4rem; }
+  .math-steps {
+    padding-left: 1.5rem; margin: .5rem 0;
+  }
+  .math-steps li {
+    font-size: .86rem; margin-bottom: .35rem;
+  }
+  .math-list {
+    padding-left: 1.3rem; margin: .4rem 0;
+  }
+  .math-list li {
+    font-size: .86rem; margin-bottom: .3rem;
+  }
+  .math-plan-table {
+    min-width: 400px; margin: .6rem 0;
+  }
+  .math-plan-table th {
+    border-bottom-color: var(--blue-mid); font-size: .74rem;
+  }
+  .math-plan-table td {
+    font-size: .84rem; padding: .4rem .5rem;
+  }
+
+  footer {
+    text-align: center; padding: 1.5rem 0 .5rem;
+    color: var(--muted); font-size: .78rem;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: .5rem; }
+    .tuition-select { grid-template-columns: 1fr 1fr; }
+    .program-select { grid-template-columns: 1fr 1fr; }
+    table { font-size: .8rem; }
+    th, td { padding: .35rem .3rem; }
+  }

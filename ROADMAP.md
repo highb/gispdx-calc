@@ -1,10 +1,11 @@
 # Roadmap
 
-## High Value
+## Done
 
-- [x] **Dark mode** — CSS variables are already in place; add a toggle and a second set of `--` values
-- [x] **URL state / sharing** — Encode program + schedule + APY in the URL hash so you can share a specific comparison (e.g. with a spouse)
-- [x] **Multi-child support** — Select 2+ programs and see combined totals; real families need this
+- [x] **Dark mode** — Toggle in header (sun/moon), persists to localStorage, respects `prefers-color-scheme`
+- [x] **URL state / sharing** — `#p=0&t=2&apy=5.0` hash encoding, validated restore on load, `replaceState` sync
+- [x] **Multi-child support** — Add/remove children as chips, combined tuition drives all plan calculations
+- [x] **Unit tests** — 20 tests covering `effective_cost`, `breakeven_apy`, `build_plans` invariants, edge cases
 
 ## Medium Value
 

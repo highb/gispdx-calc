@@ -213,6 +213,47 @@
     color: var(--muted); font-size: .78rem;
   }
 
+  /* Dark mode */
+  [data-theme="dark"] {
+    --blue: #5ba3d9;
+    --blue-dark: #8ec5f0;
+    --blue-light: #1a2a3a;
+    --blue-mid: #253545;
+    --gray-light: #23272e;
+    --gray-med: #888;
+    --bg: #15191e;
+    --card: #1c2128;
+    --border: #2d333b;
+    --text: #d1d5db;
+    --muted: #8b949e;
+    --accent: var(--blue);
+    --highlight: var(--blue-light);
+    --best: #1a2e42;
+    --warn: #f47067;
+  }
+  [data-theme="dark"] .tag-extra {
+    background: #3d1f1c;
+    color: #f47067;
+  }
+  [data-theme="dark"] .math-example .math-block {
+    background: rgba(0,0,0,.25);
+  }
+
+  /* Theme toggle button */
+  header { position: relative; }
+  .theme-toggle {
+    position: absolute; top: 1rem; right: 1rem;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 50%; width: 2.2rem; height: 2.2rem;
+    font-size: 1.15rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, border-color .15s;
+    line-height: 1; padding: 0;
+  }
+  .theme-toggle:hover {
+    border-color: var(--blue); background: var(--highlight);
+  }
+
   @media (max-width: 600px) {
     body { padding: .5rem; }
     .tuition-select { grid-template-columns: 1fr 1fr; }

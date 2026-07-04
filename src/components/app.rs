@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use wasm_bindgen::JsCast;
 
 use crate::data::{self, PROGRAMS, PaymentPlan};
 use crate::math;
@@ -61,10 +62,57 @@ pub fn App() -> impl IntoView {
         set_selected_tuition.set(Some(2));
     });
 
+    // Dark mode
+    let (dark, set_dark) = signal(false);
+
+    let apply_theme = move |is_dark: bool| {
+        if let Some(w) = web_sys::window() {
+            if let Some(doc) = w.document() {
+                if let Some(el) = doc.document_element() {
+                    let html = el.unchecked_into::<web_sys::HtmlElement>();
+                    let _ = html.dataset().set("theme", if is_dark { "dark" } else { "light" });
+                }
+            }
+            if let Ok(Some(storage)) = w.local_storage() {
+                let _ = storage.set_item("theme", if is_dark { "dark" } else { "light" });
+            }
+        }
+    };
+
+    // On mount: read localStorage or fall back to system preference
+    Effect::new(move || {
+        if let Some(w) = web_sys::window() {
+            let prefer_dark = w
+                .local_storage()
+                .ok()
+                .flatten()
+                .and_then(|s| s.get_item("theme").ok().flatten())
+                .map(|v| v == "dark")
+                .unwrap_or_else(|| {
+                    w.match_media("(prefers-color-scheme: dark)")
+                        .ok()
+                        .flatten()
+                        .map(|mql| mql.matches())
+                        .unwrap_or(false)
+                });
+            set_dark.set(prefer_dark);
+            apply_theme(prefer_dark);
+        }
+    });
+
+    let toggle_dark = move |_| {
+        let next = !dark.get();
+        set_dark.set(next);
+        apply_theme(next);
+    };
+
     view! {
         <header>
             <h1>"\u{1F1FA}\u{1F1F8}\u{1F1E9}\u{1F1EA} GIS Payment vs. APY Calculator"</h1>
             <p>"Payment Strategy vs. Investment APY Calculator \u{00B7} 2026\u{2013}2027"</p>
+            <button class="theme-toggle" on:click=toggle_dark title="Toggle dark mode">
+                {move || if dark.get() { "\u{2600}\u{FE0F}" } else { "\u{1F319}" }}
+            </button>
         </header>
 
         <div class="timeline">

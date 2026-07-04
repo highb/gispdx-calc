@@ -5,6 +5,49 @@ use crate::data::{self, PROGRAMS, PaymentPlan};
 use crate::math;
 use crate::components::math_mode::MathMode;
 
+/// Parse the URL hash (e.g. `#p=0&t=2&apy=5.0`) into (program, tuition, apy).
+fn parse_hash() -> (Option<usize>, Option<usize>, Option<f64>) {
+    let hash = web_sys::window()
+        .and_then(|w| w.location().hash().ok())
+        .unwrap_or_default();
+    let hash = hash.trim_start_matches('#');
+    let mut p = None;
+    let mut t = None;
+    let mut apy = None;
+    for part in hash.split('&') {
+        if let Some((key, val)) = part.split_once('=') {
+            match key {
+                "p" => p = val.parse::<usize>().ok(),
+                "t" => t = val.parse::<usize>().ok(),
+                "apy" => apy = val.parse::<f64>().ok(),
+                _ => {}
+            }
+        }
+    }
+    (p, t, apy)
+}
+
+/// Write current state to the URL hash via `replaceState` (no history entry).
+fn write_hash(program: Option<usize>, tuition: Option<usize>, apy: f64) {
+    let Some(window) = web_sys::window() else { return };
+    let mut parts = Vec::new();
+    if let Some(p) = program {
+        parts.push(format!("p={}", p));
+    }
+    if let Some(t) = tuition {
+        parts.push(format!("t={}", t));
+    }
+    parts.push(format!("apy={}", apy));
+    let hash = format!("#{}", parts.join("&"));
+    let _ = window.history().and_then(|h| {
+        h.replace_state_with_url(
+            &wasm_bindgen::JsValue::NULL,
+            "",
+            Some(&hash),
+        )
+    });
+}
+
 fn usd(v: f64) -> String {
     let s = format!("{:.2}", v.abs());
     let (int_part, dec_part) = s.split_once('.').unwrap();
@@ -55,11 +98,28 @@ pub fn App() -> impl IntoView {
         }
     };
 
-    // Auto-select Twos / 5 Full Days on mount
+    // On mount: restore state from URL hash, falling back to defaults
     Effect::new(move || {
-        // Run once on mount
-        set_selected_program.set(Some(0));
-        set_selected_tuition.set(Some(2));
+        let (p, t, apy) = parse_hash();
+
+        let prog_idx = p.filter(|&i| i < PROGRAMS.len()).unwrap_or(0);
+        set_selected_program.set(Some(prog_idx));
+
+        let max_t = PROGRAMS[prog_idx].options.len();
+        let tui_idx = t.filter(|&i| i < max_t).unwrap_or(2.min(max_t.saturating_sub(1)));
+        set_selected_tuition.set(Some(tui_idx));
+
+        if let Some(a) = apy {
+            set_apy_value.set(a);
+        }
+    });
+
+    // Sync signals → URL hash (runs whenever any signal changes)
+    Effect::new(move || {
+        let p = selected_program.get();
+        let t = selected_tuition.get();
+        let a = apy_value.get();
+        write_hash(p, t, a);
     });
 
     // Dark mode

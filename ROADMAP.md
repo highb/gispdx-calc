@@ -2,9 +2,9 @@
 
 ## High Value
 
-- [ ] **Dark mode** — CSS variables are already in place; add a toggle and a second set of `--` values
-- [ ] **URL state / sharing** — Encode program + schedule + APY in the URL hash so you can share a specific comparison (e.g. with a spouse)
-- [ ] **Multi-child support** — Select 2+ programs and see combined totals; real families need this
+- [x] **Dark mode** — CSS variables are already in place; add a toggle and a second set of `--` values
+- [x] **URL state / sharing** — Encode program + schedule + APY in the URL hash so you can share a specific comparison (e.g. with a spouse)
+- [x] **Multi-child support** — Select 2+ programs and see combined totals; real families need this
 
 ## Medium Value
 
